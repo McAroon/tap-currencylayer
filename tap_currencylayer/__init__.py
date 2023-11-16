@@ -66,10 +66,10 @@ def do_sync(base, start_date, access_key):
             payload = response.json()
 
             logger.info(payload)
-
+            flattened = parse_response(payload)
             # Update schema if new currency/currencies exist
             for rate in payload['quotes']:
-                if rate not in schema['properties']:
+                if rate != 'date' and rate not in schema['properties']:
                     schema['properties'][rate] = {'type': ['null', 'number']}
 
             # Only write schema if it has changed
@@ -77,7 +77,7 @@ def do_sync(base, start_date, access_key):
                 singer.write_schema('exchange_rate', schema, 'date')
 
             if payload['date'] == next_date:
-                singer.write_records('exchange_rate', [parse_response(payload)])
+                singer.write_records('exchange_rate', [flattened])
 
             state = {'start_date': next_date}
             next_date = (datetime.strptime(next_date, DATE_FORMAT) + timedelta(days=1)).strftime(DATE_FORMAT)
