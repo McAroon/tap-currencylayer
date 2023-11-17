@@ -18,7 +18,7 @@ DATE_FORMAT = '%Y-%m-%d'
 
 REQUIRED_CONFIG_KEYS = [
     'base',
-    'api_key',
+    'access_key',
     'start_date'
 ]
 
