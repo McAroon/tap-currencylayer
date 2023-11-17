@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 
-import json
 import sys
-import argparse
 import time
 import requests
 import singer
 import backoff
 import copy
 
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 
 base_url = 'https://api.currencylayer.com/historical'
 
@@ -17,6 +15,12 @@ logger = singer.get_logger()
 session = requests.Session()
 
 DATE_FORMAT = '%Y-%m-%d'
+
+REQUIRED_CONFIG_KEYS = [
+    'base',
+    'api_key',
+    'start_date'
+]
 
 
 def parse_response(r):
@@ -95,26 +99,9 @@ def do_sync(base, start_date, access_key):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument(
-        '-c', '--config', help='Config file', required=False)
-    parser.add_argument(
-        '-s', '--state', help='State file', required=False)
-
-    args = parser.parse_args()
-
-    if args.config:
-        with open(args.config) as file:
-            config = json.load(file)
-    else:
-        config = {}
-
-    if args.state:
-        with open(args.state) as file:
-            state = json.load(file)
-    else:
-        state = {}
+    args = singer.utils.parse_args(REQUIRED_CONFIG_KEYS)
+    config = args.config or {}
+    state = args.state or {}
 
     start_date = state.get('start_date') or config.get('start_date') or datetime.utcnow().strftime(DATE_FORMAT)
     start_date = singer.utils.strptime_with_tz(start_date).date().strftime(DATE_FORMAT)
